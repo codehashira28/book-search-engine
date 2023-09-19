@@ -44,11 +44,11 @@ const resolvers = {
       // Return an `Auth` object that consists of the signed token and user's information
       return { token, user };
     },
-    addBook: async (parent, { userId, bookId }) => {
+    saveBook: async (parent, { userId, bookId }) => {
       return User.findOneAndUpdate(
         { _id: userId },
         {
-          $addToSet: { books: { bookId } },
+          $addToSet: { savedBooks: { bookId } },
         },
         {
           new: true,
@@ -56,7 +56,7 @@ const resolvers = {
         }
       );
     },
-    removeBook: async (parent, { userId, bookId }) => {
+    deleteBook: async (parent, { userId, bookId }) => {
       return User.findOneAndUpdate(
         { _id: userId },
         { $pull: { savedBooks: { _id: bookId } } },
