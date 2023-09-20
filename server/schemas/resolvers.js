@@ -1,15 +1,20 @@
 const { User } = require('../models');
-const { signToken, } = require('../utils/auth');
-const { GraphQLError } = require('graphql');
+const { signToken, AuthenticationError } = require('../utils/auth');
 
 const resolvers = {
   Query: {
-    users: async () => {
-      return await User.find({});
+    // users: async () => {
+    //   return await User.find({});
+    // },
+    // user: async (parent, { username }) => {
+    //   return User.findOne({ username });
+    // },
+    me: async (parent, args, context) => {
+      if (context.user) {
+        return User.findOne({ _id: context.user._id });
+      }
+      throw AuthenticationError;
     },
-    user: async (parent, { username }) => {
-      return User.findOne({ username });
-    }
   },
 
   Mutation: {
@@ -27,7 +32,7 @@ const resolvers = {
 
       // If there is no user with that email address, return an Authentication error stating so
       if (!user) {
-        throw GraphQLError();
+        throw AuthenticationError();
       }
 
       // If there is a user found, execute the `isCorrectPassword` instance method and check if the correct password was provided
@@ -35,7 +40,7 @@ const resolvers = {
 
       // If the password is incorrect, return an Authentication error stating so
       if (!correctPw) {
-        throw GraphQLError();
+        throw AuthenticationError();
       }
 
       // If email and password are correct, sign user into the application with a JWT
