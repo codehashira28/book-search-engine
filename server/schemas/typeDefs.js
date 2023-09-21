@@ -2,6 +2,7 @@ const gql = require('graphql-tag');
 
 const typeDefs = gql`
   type Query {
+    users: [User]!
     me: User
   }
 
@@ -23,7 +24,7 @@ const typeDefs = gql`
     _id: ID
     username: String
     email: String
-    bookCount: String
+    bookCount: Int
     savedBooks: [Book]!
   }
 
