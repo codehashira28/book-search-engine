@@ -6,9 +6,9 @@ const resolvers = {
     users: async () => {
       return await User.find({});
     },
-    // user: async (parent, { username }) => {
-    //   return User.findOne({ username });
-    // },
+    user: async (parent, { username }) => {
+      return User.findOne({ username });
+    },
     me: async (parent, args, context) => {
       if (context.user) {
         return User.findOne({ _id: context.user._id });
@@ -26,7 +26,7 @@ const resolvers = {
       // Return an `Auth` object that consists of the signed token and user's information
       return { token, user };
     },
-    login: async (parent, { email, password }) => {
+    loginUser: async (parent, { email, password }) => {
       // Look up the user by the provided email address. Since the `email` field is unique, we know that only one person will exist with that email
       const user = await User.findOne({ email });
 
