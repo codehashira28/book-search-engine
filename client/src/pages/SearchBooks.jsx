@@ -9,10 +9,11 @@ import {
 } from 'react-bootstrap';
 
 import Auth from '../utils/auth';
-import { saveBook, searchGoogleBooks } from '../utils/API';
+import { searchGoogleBooks } from '../utils/API';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
 import { useMutation } from '@apollo/client';
 import { SAVE_BOOK } from '../utils/mutations';
+import context from 'react-bootstrap/esm/AccordionContext';
 
 
 const SearchBooks = () => {
@@ -23,6 +24,8 @@ const SearchBooks = () => {
 
   // create state to hold saved bookId values
   const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
+
+  const [saveBook, { error }] = useMutation(SAVE_BOOK);
 
   // set up useEffect hook to save `savedBookIds` list to localStorage on component unmount
   // learn more here: https://reactjs.org/docs/hooks-effect.html#effects-with-cleanup
@@ -63,23 +66,31 @@ const SearchBooks = () => {
   };
 
   // create function to handle saving a book to our database
-  const handleSaveBook = async (bookId) => {
+  const handleSaveBook = async (bookId, authors, title, description, image) => {
     // find the book in `searchedBooks` state by the matching id
     const bookToSave = searchedBooks.find((book) => book.bookId === bookId);
 
-    const [addBook, { error }] = useMutation(SAVE_BOOK);
+    //onsole.log(bookToSaveId, bookToSaveAuthors, bookToSaveTitle, bookToSaveDescription, bookToSaveImage)
 
     // get token
     const token = Auth.loggedIn() ? Auth.getToken() : null;
+
+    //console.log(Auth.getProfile().data._id);
+    console.log(bookToSave);
 
     if (!token) {
       return false;
     }
 
+    const userId = Auth.getProfile().data._id;
+    
+
     try {
-      const data = await addBook({
-        variables: { bookId },
+      const data = await saveBook({
+        variables: {bookId, authors, title, description, image, userId},
       });
+
+      console.log(data);
 
       // if book successfully saves to user's account, save book id to state
       setSavedBookIds([...savedBookIds, bookToSave.bookId]);
@@ -137,7 +148,7 @@ const SearchBooks = () => {
                       <Button
                         disabled={savedBookIds?.some((savedBookId) => savedBookId === book.bookId)}
                         className='btn-block btn-info'
-                        onClick={() => handleSaveBook(book.bookId)}>
+                        onClick={() => handleSaveBook(book.bookId, book.authors, book.title, book.description, book.image)}>
                         {savedBookIds?.some((savedBookId) => savedBookId === book.bookId)
                           ? 'This book has already been saved!'
                           : 'Save this Book!'}

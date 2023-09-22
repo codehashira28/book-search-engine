@@ -2,22 +2,14 @@ const gql = require('graphql-tag');
 
 const typeDefs = gql`
   type Query {
-    users: [User]!
-    user(username: String!): User
+    user(userId: ID!): User
     me: User
   }
 
   type Mutation {
     loginUser(email: String!, password: String!): Auth
     addUser(username: String!, email: String!, password: String!): Auth
-    saveBook(
-      authors: [String]
-      description: String
-      title: String
-      bookId: ID!
-      image: String
-      link: String
-    ): User
+    saveBook(authors: [String], description: String!, bookId: String!, image: String, title: String!, userId: ID!): User
     deleteBook (bookId: ID!): User
   }
 

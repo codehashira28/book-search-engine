@@ -3,15 +3,12 @@ const { signToken, AuthenticationError } = require('../utils/auth');
 
 const resolvers = {
   Query: {
-    users: async () => {
-      return await User.find({});
-    },
-    user: async (parent, { username }) => {
-      return User.findOne({ username });
+    user: async (parent, { userId }) => {
+      return User.findOne({ _id: userId });
     },
     me: async (parent, args, context) => {
       if (context.user) {
-        return User.findOne({ _id: context.user._id });
+        return User.findOne({ _id: context.user._id }).select('__v -password');
       }
       throw AuthenticationError;
     },
@@ -49,24 +46,36 @@ const resolvers = {
       // Return an `Auth` object that consists of the signed token and user's information
       return { token, user };
     },
-    saveBook: async (parent, { userId, bookId }) => {
-      return User.findOneAndUpdate(
-        { _id: userId },
-        {
-          $addToSet: { savedBooks: { bookId } },
-        },
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
+    saveBook: async (parent, { authors, description, bookId, image, title, userId }) => {
+        return User.findOneAndUpdate(
+          { _id: userId },
+          {
+            $push: { savedBooks:  { authors, description, bookId, image, title }  },
+          },
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+      
+      // If user attempts to execute this mutation and isn't logged in, throw an error
+      throw AuthenticationError;
     },
-    deleteBook: async (parent, { userId, bookId }) => {
-      return User.findOneAndUpdate(
-        { _id: userId },
-        { $pull: { savedBooks: { _id: bookId } } },
-        { new: true }
-      );
+    deleteBook: async (parent, { bookId }, context) => {
+      if (context.user) {
+        return User.findOneAndUpdate(
+          { _id: context.user._id },
+          {
+            $pull: { savedBooks: { bookId } },
+          },
+          {
+            new: true,
+            runValidators: true,
+          }
+        );
+      }
+      // If user attempts to execute this mutation and isn't logged in, throw an error
+      throw AuthenticationError;
     },
   },
 };
